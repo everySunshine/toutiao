@@ -1,7 +1,6 @@
 <template>
   <div id="app">
     <router-view/>
-    <i class="toutiao toutiao-dianzan2"></i>
   </div>
 </template>
 <script>

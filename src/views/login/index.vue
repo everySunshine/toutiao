@@ -88,13 +88,12 @@ export default {
       });
       try {
         const { data } = await login(user);
-        this.$store.commit('setUser', data.data)
+        this.$store.commit('user/setUser',data.data)
         this.$toast.success("登录成功");
-        this.token = res.data.data.token
-        localStorage.setItem('token', this.token)
+        this.$router.back()
         console.log(res);
-      } catch (error) {
-        if (error.response.status === 400) {
+      } catch (err) {
+        if (err.response.status === 400) {
           this.$toast.fail("手机号或验证码错误");
         } else {
           this.$toast.fail("登录失败");

@@ -33,6 +33,8 @@ export const getUserchannel = () => {
     method: 'GET'
   })
 }
+
+
 //获取用户频道列表
 export const getmychannels = () => {
   return request({
@@ -40,3 +42,22 @@ export const getmychannels = () => {
     method: 'GET',
   })
 }
+
+//添加用户频道
+export const addmychannels = (channel) => {
+  return request({
+    url: '/v1_0/user/channels',
+    method: 'PATCH',
+    data: {
+      channels: [channel]
+    }
+  })
+}
+
+export const delmychannels = (target) => {
+  return request({
+    url: `/v1_0/user/channels/${target}`,
+    method: 'DELETE',
+  })
+}
+

@@ -9,4 +9,10 @@ export const getarticlelist = (params) => {
   })
 }
 
+export const getarticledetail = (articleId) => {
+  return request({
+    url: `/v1_0/articles/${articleId}`,
+    method: 'GET',
+  })
+}
 

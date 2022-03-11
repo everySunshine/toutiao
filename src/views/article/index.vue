@@ -5,23 +5,22 @@
       class="page-nav-bar"
       left-arrow
       title="头条"
+      @click-left="$router.back()"
     ></van-nav-bar>
     <!-- /导航栏 -->
 
     <div class="main-wrap">
       <!-- 加载中 -->
-      <div class="loading-wrap">
-        <van-loading
-          color="#3296fa"
-          vertical
-        >加载中</van-loading>
+      <div v-if="loading" class="loading-wrap">
+        <van-loading color="#3296fa" vertical>加载中</van-loading>
       </div>
       <!-- /加载中 -->
 
       <!-- 加载完成-文章详情 -->
-      <div class="article-detail">
+      <!-- 如果有title就代表加载成功 -->
+      <div v-else-if="detaildata.title" class="article-detail">
         <!-- 文章标题 -->
-        <h1 class="article-title">{{detaildata.title}}</h1>
+        <h1 class="article-title">{{ detaildata.title }}</h1>
         <!-- /文章标题 -->
 
         <!-- 用户信息 -->
@@ -31,111 +30,181 @@
             slot="icon"
             round
             fit="cover"
-            src="https://img.yzcdn.cn/vant/cat.jpeg"
+            :src="detaildata.aut_photo"
           />
-          <div slot="title" class="user-name">黑马头条号</div>
-          <div slot="label" class="publish-date">14小时前</div>
-          <van-button
-            class="follow-btn"
-            type="info"
-            color="#3296fa"
-            round
-            size="small"
-            icon="plus"
-          >关注</van-button>
-          <!-- <van-button
-            class="follow-btn"
-            round
-            size="small"
-          >已关注</van-button> -->
+          <div slot="title" class="user-name">{{ detaildata.aut_name }}</div>
+          <div slot="label" class="publish-date">
+            {{ detaildata.pubdate | relativeTime }}
+          </div>
+          <followbtn
+            :isfollowed="detaildata.is_followed"
+            :userId="detaildata.aut_id"
+            @updata-is_followed="detaildata.is_followed = $event"
+          ></followbtn>
         </van-cell>
         <!-- /用户信息 -->
 
         <!-- 文章内容 -->
-        <div class="article-content">这是文章内容</div>
+        <div
+          class="article-content markdown-body"
+          v-html="detaildata.content"
+          ref="article-content"
+        ></div>
         <van-divider>正文结束</van-divider>
+        <commentList
+          :sourse="detaildata.art_id"
+          @onload_success="totacomment = $event.total_count"
+          :list="commentList"
+          @reply-clicks="onReplyClick"
+        ></commentList>
+        <!-- 底部区域 -->
+        <div class="article-bottom">
+          <van-button
+            class="comment-btn"
+            type="default"
+            round
+            size="small"
+            @click="isPostShow = true"
+            >写评论</van-button
+          >
+          <van-icon name="comment-o" :info="totacomment" color="#777" />
+          <!-- 注意这个双向绑定的value是绑定到了子组件中 -->
+          <CollectArticle
+            v-model="detaildata.is_collected"
+            :articleId="detaildata.art_id"
+          ></CollectArticle>
+          <LikeArtcle
+            :articleId="detaildata.art_id"
+            v-model="detaildata.attitude"
+          ></LikeArtcle>
+          <van-icon name="share" color="#777777"></van-icon>
+        </div>
+        <!-- /底部区域 -->
+        <van-popup v-model="isPostShow" position="bottom">
+          <CommentPost :target="detaildata.art_id" @post-success="onPostSuccess"></CommentPost>
+        </van-popup>
       </div>
       <!-- /加载完成-文章详情 -->
 
       <!-- 加载失败：404 -->
-      <div class="error-wrap">
+      <div v-else-if="this.errStatus === 404" class="error-wrap">
         <van-icon name="failure" />
         <p class="text">该资源不存在或已删除！</p>
       </div>
       <!-- /加载失败：404 -->
 
       <!-- 加载失败：其它未知错误（例如网络原因或服务端异常） -->
-      <div class="error-wrap">
+      <div v-else class="error-wrap">
         <van-icon name="failure" />
         <p class="text">内容加载失败！</p>
-        <van-button class="retry-btn">点击重试</van-button>
+        <van-button class="retry-btn" @click="loadArticle">点击重试</van-button>
       </div>
       <!-- /加载失败：其它未知错误（例如网络原因或服务端异常） -->
-    </div>
 
-    <!-- 底部区域 -->
-    <div class="article-bottom">
-      <van-button
-        class="comment-btn"
-        type="default"
-        round
-        size="small"
-      >写评论</van-button>
-      <van-icon
-        name="comment-o"
-        info="123"
-        color="#777"
-      />
-      <van-icon
-        color="#777"
-        name="star-o"
-      />
-      <van-icon
-        color="#777"
-        name="good-job-o"
-      />
-      <van-icon name="share" color="#777777"></van-icon>
+      <van-popup v-model="isReplyShow" position="bottom" :style="{ height: '80%' }">
+        <comment-reply :comment="currntComment"  @close="isReplyShow = false" v-if="isReplyShow"></comment-reply>
+      </van-popup>
     </div>
-    <!-- /底部区域 -->
   </div>
 </template>
 
 <script>
-import {getarticledetail} from '../../api/crticle'
+import { getarticledetail } from "../../api/crticle";
+import { ImagePreview } from "vant";
+import followbtn from "../../components/follow-user";
+import CollectArticle from "../../components/collect-article";
+import LikeArtcle from "../../components/like-arctle/index.vue";
+import commentList from "./components/comment-list.vue";
+import CommentPost from "./components/comment-post.vue";
+import CommentReply from './components/comment-reply.vue'
 export default {
-  name: 'ArticleIndex',
-  components: {},
+  name: "ArticleIndex",
+  components: {
+    followbtn,
+    CollectArticle,
+    LikeArtcle,
+    commentList,
+    CommentPost,
+    CommentReply
+  },
   props: {
     articleId: {
       type: [Number, String, Object],
-      required: true
-    }
+      required: true,
+    },
   },
-  data () {
+  data() {
     return {
-      detaildata: {}
+      detaildata: {},
+      loading: true,
+      errStatus: 0,
+      followLoading: false,
+      totacomment: 0,
+      isPostShow: false,
+      commentList:[],
+      isReplyShow: false,
+      currntComment:{}
+    };
+  },
+  provide: function () {
+    return {
+      articleId: this.articleId
     }
   },
   computed: {},
   watch: {},
-  created () {
-    this.loadArticle()
+  created() {
+    console.log(1);
+    this.loadArticle();
   },
-  mounted () {},
+  mounted() {},
   methods: {
     async loadArticle() {
+      console.log(2);
+      this.loading = true;
       try {
-        const {data} =  await getarticledetail(this.articleId)
-        this.detaildata = data.data
+        const { data } = await getarticledetail(this.articleId);
+        this.detaildata = data.data;
+        this.loading = false;
+        setTimeout(() => {
+          this.previewImage();
+        }, 0);
       } catch (error) {
-        this.$toast('获取用户失败')
+        if (error.response && error.response.status === 404) {
+          this.errStatus = 404;
+        }
+        this.loading = false;
+        this.$toast("获取用户失败");
       }
+    },
+    previewImage() {
+      const articleContent = this.$refs["article-content"];
+      const imgs = articleContent.querySelectorAll("img");
+      const images = [];
+      imgs.forEach((img, index) => {
+        images.push(img.src);
+        img.onclick = () => {
+          ImagePreview({
+            images,
+            startPosition: index,
+          });
+        };
+      });
+    },
+    onPostSuccess(data) {
+      this.isPostShow = false
+      this.commentList.unshift(data.new_obj)
+    },
+    onReplyClick(comment) {
+      this.currntComment = comment
+      this.isReplyShow = true
     }
-  }
-}
+  },
+};
 </script>
 
 <style scoped lang="less">
+@import "./github-markdown.css";
 .article-container {
   .main-wrap {
     position: fixed;

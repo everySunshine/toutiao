@@ -11,7 +11,8 @@ module.exports = {
       },
       // rootValue: 37.5,
       //表示所有属性都会转换
-      propList: ['*']
+      propList: ['*'],
+      exclude: 'github-markdown'
     }
   }
 }

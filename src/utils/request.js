@@ -8,13 +8,13 @@ const request = axios.create({
   setTimeout: 5000,
   //自定义后端返回的数据
   //data返回的后端的原始数据
-  transformRequest: [function (data) {
-    try {
-      return JSONBig.parse(data)
-    } catch (error) {
-      return data
-    }
-  }]
+  // transformRequest: [function (data) {
+  //   try {
+  //     return JSONBig.parse(data)
+  //   } catch (error) {
+  //     return data
+  //   }
+  // }]
 })
 
 request.interceptors.request.use((config) => {

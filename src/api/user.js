@@ -1,7 +1,7 @@
 import  request  from "../utils/request";
 //获取登录信息
 export const login = (data) => {
-  // console.log(data);
+  console.log(data);
   return request({
     url: '/v1_0/authorizations',
     method: 'POST',
@@ -23,6 +23,30 @@ export const getUserInfo = () => {
   return request({
     url: '/v1_0/user',
     method: 'GET'
+  })
+}
+
+//获取个人信息
+export const getUserprofile = () => {
+  return request({
+    url: '/v1_0/user/profile',
+    method: 'GET'
+  })
+}
+
+export const updataUserprofile = (data) => {
+  return request({
+    url: '/v1_0/user/profile',
+    method: 'PATCH',
+    data
+  })
+}
+
+export const updataUserphoto = (data) => {
+  return request({
+    url: '/v1_0/user/photo',
+    method: 'PATCH',
+    data
   })
 }
 
@@ -60,4 +84,22 @@ export const delmychannels = (target) => {
     method: 'DELETE',
   })
 }
+
+export const addFollow = (target) => {
+  return request({
+    url: `/v1_0/user/followings`,
+    method: 'POST',
+    data: {
+      target
+    }
+  })
+}
+
+export const delFollow = (target) => {
+  return request({
+    url: `/v1_0/user/followings/${target}`,
+    method: 'DELETE',
+  })
+}
+
 

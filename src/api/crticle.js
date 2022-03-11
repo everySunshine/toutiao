@@ -16,3 +16,38 @@ export const getarticledetail = (articleId) => {
   })
 }
 
+export const addcollection = (target) => {
+  return request({
+    url: `/v1_0/article/collections`,
+    method: 'POST',
+    data: {
+      target
+    }
+  })
+}
+
+export const delcollection = (target) => {
+  return request({
+    url: `/v1_0/article/collections/${target}`,
+    method: 'DELETE',
+  })
+}
+
+export const addlikeArticle = (target) => {
+  return request({
+    url: `/v1_0/article/likings`,
+    method: 'POST',
+    data: {
+      target
+    }
+  })
+}
+
+export const dellikeArticle = (target) => {
+  return request({
+    url: `/v1_0/article/likings/${target}`,
+    method: 'DELETE',
+  })
+}
+
+

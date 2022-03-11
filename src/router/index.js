@@ -48,6 +48,11 @@ const routes = [
     component: () => import('../views/article'),
     //开启路由传参可以在使用的组件中的propo参数中得到
     props: true
+  },
+  {
+    path: '/user/profile',
+    name: 'userprofile',
+    component: () => import('../views/user-profile'),
   }
 ]
 
